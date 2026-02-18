@@ -9,7 +9,7 @@
 <nav class="navbar default-layout-navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
         <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
           <a class="navbar-brand brand-logo" href="index.php">
-            <h4 style="font-weight: 700; letter-spacing: -1px;">Sidratul Muntaha.</h4>
+            <h4 style="font-weight: 700; letter-spacing: -1px;">Beautymine.</h4>
             <p style="font-size: 13px; font-style: italic; margin-top: -13px; margin-bottom: 0;">Admin Panel</p>
           </a>
           <a class="navbar-brand brand-logo-mini" href="index.php">

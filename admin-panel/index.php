@@ -2,6 +2,45 @@
 $current_page = basename($_SERVER['PHP_SELF']);
 $page_title = 'Dashboard';
 require './components/header.php';
+
+// Protect page - redirect to login if not authenticated
+protectPage();
+
+$current_page = basename($_SERVER['PHP_SELF']);
+$page_title = 'Dashboard';
+
+// Get comprehensive statistics
+$conn = getDatabaseConnection();
+$stats = getEnhancedOrderStatistics($conn);
+
+// Get recent orders for the table
+$recent_orders = getRecentOrders(5);
+
+// Get daily analytics for trends
+$daily_analytics = getDailyAnalytics(7); // Last 7 days
+
+// Calculate trends (comparing with previous period)
+$today_orders = $stats['today_orders'];
+$yesterday_query = "SELECT COUNT(*) as count FROM orders WHERE DATE(created_at) = DATE_SUB(CURDATE(), INTERVAL 1 DAY)";
+$yesterday_result = $conn->query($yesterday_query);
+$yesterday_orders = $yesterday_result ? $yesterday_result->fetch_assoc()['count'] : 0;
+
+$this_month_orders = $stats['month_orders'];
+$last_month_query = "SELECT COUNT(*) as count FROM orders WHERE YEAR(created_at) = YEAR(CURDATE() - INTERVAL 1 MONTH) AND MONTH(created_at) = MONTH(CURDATE() - INTERVAL 1 MONTH)";
+$last_month_result = $conn->query($last_month_query);
+$last_month_orders = $last_month_result ? $last_month_result->fetch_assoc()['count'] : 0;
+
+// Get product statistics
+$product_stats_query = "SELECT COUNT(*) as total_products, 
+                        SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) as active_products,
+                        SUM(CASE WHEN stock_quantity < 10 THEN 1 ELSE 0 END) as low_stock_products
+                        FROM products";
+$product_stats_result = $conn->query($product_stats_query);
+$product_stats = $product_stats_result ? $product_stats_result->fetch_assoc() : ['total_products' => 0, 'active_products' => 0, 'low_stock_products' => 0];
+
+$conn->close();
+
+
 ?>
 <style>
   /* Modern Stats Card Styles */
@@ -105,12 +144,9 @@ require './components/header.php';
   }
 
   @keyframes bounce {
-
-    0%,
-    100% {
+    0%, 100% {
       transform: translateY(0);
     }
-
     50% {
       transform: translateY(-5px);
     }
@@ -190,12 +226,14 @@ require './components/header.php';
     background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
     color: #334155;
   }
-.card{
-  box-shadow: var(--shadow-sm);
-  border: none;
-  outline: none;
-  margin-bottom: 30px;
-}
+
+  .card {
+    box-shadow: var(--shadow-sm);
+    border: none;
+    outline: none;
+    margin-bottom: 30px;
+  }
+
   /* Responsive */
   @media (max-width: 1199px) {
     .stats-value {
@@ -251,15 +289,15 @@ require './components/header.php';
     <!-- Dashboard Stats Area -->
     <div class="row g-4">
 
-      <!-- Total Applications -->
+      <!-- Total Revenue -->
       <div class="col-xl-3 col-md-6">
-        <div class="stats-card stats-gradient-danger">
+        <div class="stats-card stats-gradient-success">
           <div class="stats-icon">
-            <i class="fa-solid fa-graduation-cap"></i>
+            <i class="fa-solid fa-bangladeshi-taka-sign"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Total Applications</h6>
-            <h2 class="stats-value">156</h2>
+            <h6 class="stats-label">Total Revenue</h6>
+            <h2 class="stats-value">৳ <?php echo number_format($stats['total_revenue'], 2); ?></h2>
           </div>
           <div class="stats-trend">
             <span class="trend-icon">↗</span>
@@ -267,15 +305,47 @@ require './components/header.php';
         </div>
       </div>
 
-      <!-- Scholarship Categories -->
+      <!-- Total Orders -->
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card stats-gradient-danger">
+          <div class="stats-icon">
+            <i class="fa-solid fa-shopping-cart"></i>
+          </div>
+          <div class="stats-content">
+            <h6 class="stats-label">Total Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['total_orders']; ?></h2>
+          </div>
+          <div class="stats-trend">
+            <span class="trend-icon">↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today's Revenue -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-info">
           <div class="stats-icon">
-            <i class="fa-solid fa-list"></i>
+            <i class="fa-solid fa-calendar-day"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Scholarship Categories</h6>
-            <h2 class="stats-value">5</h2>
+            <h6 class="stats-label">Today's Revenue</h6>
+            <h2 class="stats-value">৳ <?php echo number_format($stats['today_revenue'], 2); ?></h2>
+          </div>
+          <div class="stats-trend">
+            <span class="trend-icon"><?php echo $today_orders > $yesterday_orders ? '↗' : ($today_orders < $yesterday_orders ? '↘' : '→'); ?></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Products -->
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card stats-gradient-primary">
+          <div class="stats-icon">
+            <i class="fa-solid fa-box"></i>
+          </div>
+          <div class="stats-content">
+            <h6 class="stats-label">Total Products</h6>
+            <h2 class="stats-value"><?php echo $product_stats['total_products']; ?></h2>
           </div>
           <div class="stats-trend">
             <span class="trend-icon">→</span>
@@ -283,149 +353,117 @@ require './components/header.php';
         </div>
       </div>
 
-      <!-- Total Awarded -->
-      <div class="col-xl-3 col-md-6">
-        <div class="stats-card stats-gradient-success">
-          <div class="stats-icon">
-            <i class="fa-solid fa-award"></i>
-          </div>
-          <div class="stats-content">
-            <h6 class="stats-label">Total Awarded</h6>
-            <h2 class="stats-value">89</h2>
-          </div>
-          <div class="stats-trend">
-            <span class="trend-icon">↗</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Students -->
-      <div class="col-xl-3 col-md-6">
-        <div class="stats-card stats-gradient-primary">
-          <div class="stats-icon">
-            <i class="fa-solid fa-users"></i>
-          </div>
-          <div class="stats-content">
-            <h6 class="stats-label">Total Students</h6>
-            <h2 class="stats-value">342</h2>
-          </div>
-          <div class="stats-trend">
-            <span class="trend-icon">↗</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total Donations -->
-      <div class="col-xl-3 col-md-6">
-        <div class="stats-card stats-gradient-primary">
-          <div class="stats-icon">
-            <i class="fa-solid fa-hand-holding-dollar"></i>
-          </div>
-          <div class="stats-content">
-            <h6 class="stats-label">Total Donations</h6>
-            <h2 class="stats-value">245</h2>
-          </div>
-          <div class="stats-trend">
-            <span class="trend-icon">↗</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Donation Amount -->
-      <div class="col-xl-3 col-md-6">
-        <div class="stats-card stats-gradient-success">
-          <div class="stats-icon">
-            <i class="fa-solid fa-bangladeshi-taka-sign"></i>
-          </div>
-          <div class="stats-content">
-            <h6 class="stats-label">Donation Amount</h6>
-            <h2 class="stats-value">৳ 5,830</h2>
-          </div>
-          <div class="stats-trend">
-            <span class="trend-icon">↗</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pending Applications -->
+      <!-- Pending Orders -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-warning">
           <div class="stats-icon">
             <i class="fa-solid fa-clock"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Pending Applications</h6>
-            <h2 class="stats-value">23</h2>
+            <h6 class="stats-label">Pending Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['pending_orders']; ?></h2>
           </div>
           <div class="stats-badge badge-warning">Action Required</div>
         </div>
       </div>
 
-      <!-- Processed Applications -->
+      <!-- Processing Orders -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-info">
           <div class="stats-icon">
             <i class="fa-solid fa-spinner"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Processed Applications</h6>
-            <h2 class="stats-value">98</h2>
+            <h6 class="stats-label">Processing Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['processing_orders']; ?></h2>
           </div>
           <div class="stats-badge badge-info">In Progress</div>
         </div>
       </div>
 
-      <!-- Approved Scholarships -->
+      <!-- Delivered Orders -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-success">
           <div class="stats-icon">
             <i class="fa-solid fa-check-circle"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Approved Scholarships</h6>
-            <h2 class="stats-value">67</h2>
+            <h6 class="stats-label">Delivered Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['delivered_orders']; ?></h2>
           </div>
           <div class="stats-badge badge-success">Completed</div>
         </div>
       </div>
 
-      <!-- Rejected Applications -->
+      <!-- Cancelled Orders -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-dark">
           <div class="stats-icon">
             <i class="fa-solid fa-times-circle"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Rejected Applications</h6>
-            <h2 class="stats-value">12</h2>
+            <h6 class="stats-label">Cancelled Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['cancelled_orders']; ?></h2>
           </div>
           <div class="stats-badge badge-dark">Cancelled</div>
         </div>
       </div>
 
-      <!-- Active Notices -->
+      <!-- Average Order Value -->
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card stats-gradient-primary">
+          <div class="stats-icon">
+            <i class="fa-solid fa-chart-bar"></i>
+          </div>
+          <div class="stats-content">
+            <h6 class="stats-label">Avg Order Value</h6>
+            <h2 class="stats-value">৳ <?php echo number_format($stats['average_order_value'], 2); ?></h2>
+          </div>
+          <div class="stats-trend">
+            <span class="trend-icon">→</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmed Orders -->
+      <div class="col-xl-3 col-md-6">
+        <div class="stats-card stats-gradient-info">
+          <div class="stats-icon">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <div class="stats-content">
+            <h6 class="stats-label">Confirmed Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['confirmed_orders']; ?></h2>
+          </div>
+          <div class="stats-trend">
+            <span class="trend-icon">↗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipped Orders -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-purple">
           <div class="stats-icon">
-            <i class="fa-solid fa-bullhorn"></i>
+            <i class="fa-solid fa-truck"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Active Notices</h6>
-            <h2 class="stats-value">8</h2>
+            <h6 class="stats-label">Shipped Orders</h6>
+            <h2 class="stats-value"><?php echo $stats['shipped_orders']; ?></h2>
           </div>
           <div class="stats-badge badge-purple">Shipping</div>
         </div>
       </div>
 
-      <!-- Upcoming Activities -->
+      <!-- Active Products -->
       <div class="col-xl-3 col-md-6">
         <div class="stats-card stats-gradient-success">
           <div class="stats-icon">
-            <i class="fa-solid fa-calendar-days"></i>
+            <i class="fa-solid fa-store"></i>
           </div>
           <div class="stats-content">
-            <h6 class="stats-label">Upcoming Activities</h6>
-            <h2 class="stats-value">15</h2>
+            <h6 class="stats-label">Active Products</h6>
+            <h2 class="stats-value"><?php echo $product_stats['active_products']; ?></h2>
           </div>
           <div class="stats-trend">
             <span class="trend-icon">↗</span>
@@ -439,146 +477,114 @@ require './components/header.php';
     <h2 class="quick-actions-title mt-5">Quick Actions</h2>
     <div class="quick-actions-container">
 
-      <!-- New Application -->
-      <button class="quick-action-card" onclick="window.location.href='add-activity.php'">
+      <!-- New Order -->
+      <button class="quick-action-card" onclick="window.location.href='manage-orders.php'">
         <div class="quick-action-icon new-notice">
           <i class="fa-solid fa-plus"></i>
         </div>
-        <p class="quick-action-title">New Activity</p>
+        <p class="quick-action-title">View Orders</p>
       </button>
 
-      <!-- View Applications -->
-      <button class="quick-action-card" onclick="window.location.href='scholarship-application-list.php'">
+      <!-- Add Product -->
+      <button class="quick-action-card" onclick="window.location.href='products.php'">
         <div class="quick-action-icon upload-media">
-          <i class="fa-solid fa-list-check"></i>
+          <i class="fa-solid fa-box-open"></i>
         </div>
-        <p class="quick-action-title">View Applications</p>
+        <p class="quick-action-title">Manage Products</p>
       </button>
 
-      <!-- Add Notice -->
-      <button class="quick-action-card" onclick="window.location.href='add-notice.php'">
+      <!-- Landing Pages -->
+      <button class="quick-action-card" onclick="window.location.href='manage-landing-templates.php'">
         <div class="quick-action-icon add-activity">
-          <i class="fa-solid fa-bullhorn"></i>
+          <i class="fa-solid fa-pager"></i>
         </div>
-        <p class="quick-action-title">Add Notice</p>
+        <p class="quick-action-title">Landing Pages</p>
       </button>
 
-      <!-- Upload Media -->
-      <button class="quick-action-card" onclick="window.location.href='gallery.php'">
+      <!-- Product Sets -->
+      <button class="quick-action-card" onclick="window.location.href='manage-product-sets.php'">
         <div class="quick-action-icon edit-about">
-          <i class="fa-solid fa-images"></i>
+          <i class="fa-solid fa-layer-group"></i>
         </div>
-        <p class="quick-action-title">Upload Media</p>
+        <p class="quick-action-title">Product Sets</p>
       </button>
 
     </div>
 
-
-    <!-- <div class="row grid-margin stretch-card">
-        <div class="table-responsive w-100">
-          <table class="table table-bordered">
-            <thead>
-              <tr class="text-dark">
-                <th><b>SL</b></th>
-                <th><b>Name</b></th>
-                <th><b>Phone No.</b></th>
-                <th><b>Category</b></th>
-                <th><b>Colletion Ammount</b></th>
-                <th><b>Transaction Id</b></th>
-                <th><b>Date</b></th>
-
-              </tr>
-            </thead>
-
-            <tbody id="donationTableBody">
-              <tr>
-                <td>15</td>
-                <td>INV-68DQXNMYZ</td>
-                <td>2,290.00 Tk.</td>
-                <td>Cash On Delivery</td>
-                <td>2025-09-23 16:08:14</td>
-
-                <td>
-                  <a href="order_details.php?invoice_no=INV-68DQXNMYZ">
-                    <button class="btn btn-info">View Details <span class="mdi mdi-details"></span></button>
-                  </a>
-                </td>
-
-              </tr>
-
-              <tr>
-                <td>14</td>
-                <td>INV-68DQXNMYZ</td>
-                <td>1,250.00 Tk.</td>
-                <td>Cash On Delivery</td>
-                <td>2025-09-23 16:08:14</td>
-
-                <td>
-                  <a href="order_details.php?invoice_no=INV-68DQXNMYZ">
-                    <button class="btn btn-info">View Details <span class="mdi mdi-details"></span></button>
-                  </a>
-                </td>
-
-              </tr>
-
-              <tr>
-                <td>16</td>
-                <td>INV-68DQXNMYZ</td>
-                <td>2,290.00 Tk.</td>
-                <td>Cash On Delivery</td>
-                <td>2025-09-23 16:08:14</td>
-
-                <td>
-                  <a href="order_details.php?invoice_no=INV-68DQXNMYZ">
-                    <button class="btn btn-info">View Details <span class="mdi mdi-details"></span></button>
-                  </a>
-                </td>
-
-              </tr>
-
-            </tbody>
-            <tfoot>
-              <tr>
-                <td></td>
-
-
-                <td></td>
-                <td></td>
-                <td><b>Total Collections</b></td>
-                <td><b>5,830.00 Tk.</b></td>
-                <td></td>
-
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div> -->
-
-    <div class="card p-3">
+    <!-- Recent Orders Table -->
+    <div class="card p-3 mt-4">
       <div class="card-body">
-        <h1 class="chart-title mb-1">Recent donations</h1>
-        <p>List of latest recent donations</p><br>
+        <h1 class="chart-title mb-1">Recent Orders</h1>
+        <p>List of latest recent orders</p><br>
         <div class="table-responsive">
           <table class="table table-bordered">
-            <tbody>
+            <thead>
               <tr>
                 <th>SL</th>
-                <th>Name</th>
-                <th>Customer Phone</th>
-                <th>Invoice No</th>
-                <th>Ammount</th>
+                <th>Order Number</th>
+                <th>Customer Name</th>
+                <th>Phone</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Payment</th>
                 <th>Date</th>
-                <th>Tansaction ID</th>
-                <th colspan="2">Action</th>
               </tr>
-            </tbody>
-            <tbody id="donationTableBody">
+            </thead>
+            <tbody>
+              <?php if (empty($recent_orders)): ?>
+                <tr>
+                  <td colspan="9" class="text-center">No orders found</td>
+                </tr>
+              <?php else: ?>
+                <?php foreach ($recent_orders as $index => $order): ?>
+                  <tr>
+                    <td><?php echo $index + 1; ?></td>
+                    <td><?php echo htmlspecialchars($order['order_number']); ?></td>
+                    <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
+                    <td><?php echo htmlspecialchars($order['customer_phone']); ?></td>
+                    <td>৳ <?php echo number_format($order['total_amount'], 2); ?></td>
+                    <td>
+                      <?php
+                      $status_badges = [
+                        'pending' => 'warning',
+                        'confirmed' => 'info',
+                        'processing' => 'primary',
+                        'shipped' => 'purple',
+                        'delivered' => 'success',
+                        'cancelled' => 'danger'
+                      ];
+                      $badge_class = $status_badges[$order['order_status']] ?? 'secondary';
+                      ?>
+                      <span class="badge bg-<?php echo $badge_class; ?>">
+                        <?php echo ucfirst($order['order_status']); ?>
+                      </span>
+                    </td>
+                    <td>
+                      <?php
+                      $payment_badges = [
+                        'pending' => 'warning',
+                        'partial' => 'info',
+                        'paid' => 'success',
+                        'refunded' => 'secondary',
+                        'failed' => 'danger'
+                      ];
+                      $payment_badge = $payment_badges[$order['payment_status']] ?? 'secondary';
+                      ?>
+                      <span class="badge bg-<?php echo $payment_badge; ?>">
+                        <?php echo ucfirst($order['payment_status']); ?>
+                      </span>
+                    </td>
+                    <td><?php echo date('d M Y, h:i A', strtotime($order['created_at'])); ?></td>
+
+                  </tr>
+                <?php endforeach; ?>
+              <?php endif; ?>
             </tbody>
           </table>
         </div>
       </div>
-      <a href="donation-list.php" class="p-3">
-        <button class="btn btn-success py-2 px-4 rounded-0">See All Donations</button>
+      <a href="manage-orders.php" class="p-3">
+        <button class="btn btn-success py-2 px-4 rounded-0">See All Orders</button>
       </a>
     </div>
 
@@ -587,9 +593,5 @@ require './components/header.php';
 <!--------------------------->
 <!-- END MAIN AREA -->
 <!--------------------------->
-<!-- Add these scripts before footer -->
-<script src="js/donationData.js"></script>
-<script src="js/dashboardDonations.js"></script>
-
 
 <?php require './components/footer.php'; ?>

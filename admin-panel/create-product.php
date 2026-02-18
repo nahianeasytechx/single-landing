@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         font-weight: 600;
     }
     
-    .card .card-title {
-    color: #fff;
+.card .card-title {
+    color: white;
     margin-bottom: 0.75rem;
     text-transform: capitalize;
     font-family: "ubuntu-medium", sans-serif;
@@ -130,9 +130,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="row mb-4">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h1 class="page-title">
-                        <i class="fas fa-plus-circle"></i> Add New Product
-                    </h1>
+    <div class="page-title-section mt-3">
+      <div class="icon-box">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+      <h1>Add new Product</h1>
+    </div>
                     <a href="index.php" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Back to Products
                     </a>

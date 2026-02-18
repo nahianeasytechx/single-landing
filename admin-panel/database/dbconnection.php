@@ -15,19 +15,5 @@
     }
 
 
-    function getDatabaseConnection() {
-    $host = 'localhost';
-    $username = 'root';
-    $password = '';
-    $database = 'single_landing';
-    
-    $conn = new mysqli($host, $username, $password, $database);
-    
-    if ($conn->connect_error) {
-        error_log("Database connection failed: " . $conn->connect_error);
-        return null;
-    }
-    
-    return $conn;
-}
+
     ?>

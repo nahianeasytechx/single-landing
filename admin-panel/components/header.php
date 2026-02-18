@@ -1,6 +1,9 @@
 <?php
 session_start();
-
+error_log("SESSION DUMP: " . print_r($_SESSION, true));
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    die("Session failed to start – check for output before session_start()");
+}
 // Include functions for authentication check
 require_once __DIR__ . '/../../components/functions.php';
 

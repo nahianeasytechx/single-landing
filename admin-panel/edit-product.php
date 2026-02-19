@@ -41,7 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 ?>
 
-
+<style>
+    .card-body .btn {
+    width: 133px;
+    padding: 10px;
+    margin-bottom: 0;
+    font-size: 12px;
+}
+</style>
 
 <!--=======================================================================-->
 <!------------------------ Your Content Start From Here --------------------->
@@ -225,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </div>
-                            <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addColorOption">
+                            <button type="button" class="btn btn-outline-primary btn-sm " id="addColorOption">
                                 Add Color Option
                             </button>
                         </div>
@@ -235,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <a href="products.php" class="btn btn-secondary">Back to Products</a>
                             <div>
                                 <a href="view-product.php?id=<?php echo $product_id; ?>" class="btn btn-info me-2">View Product</a>
-                                <button type="submit" class="btn btn-primary">Update Product</button>
+                                <button type="submit" class="btn btn-primary ">Update Product</button>
                             </div>
                         </div>
                     </form>

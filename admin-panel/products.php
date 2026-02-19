@@ -58,7 +58,7 @@ font-size: 10px;
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">All Products</h5>
-                <a href="create-product.php" class="btn btn-primary">
+                <a href="create-product.php" class="btn btn-primary" style="line-height:2.2;">
                     <i class="ri-add-line align-middle"></i> Add New Product
                 </a>
             </div>

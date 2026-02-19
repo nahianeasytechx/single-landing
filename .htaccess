@@ -1,0 +1,132 @@
+# ============================================================
+# .htaccess - E-Commerce Landing Page & Admin Panel
+# ============================================================
+
+Options -Indexes
+ServerSignature Off
+
+# -------------------------------------------------------
+# Rewrite Engine
+# -------------------------------------------------------
+RewriteEngine On
+RewriteBase /
+
+# Force HTTPS
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Force www (uncomment one block — not both)
+# RewriteCond %{HTTP_HOST} !^www\. [NC]
+# RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# -------------------------------------------------------
+# Protect sensitive files — block direct access
+# -------------------------------------------------------
+<FilesMatch "\.(env|sql|log|ini|bak|sh|git|DS_Store)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Block access to composer files
+<FilesMatch "^(composer\.(json|lock)|package\.json|\.gitignore)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# -------------------------------------------------------
+# Protect the components/ folder (PHP includes/functions)
+# -------------------------------------------------------
+RewriteRule ^components/ - [F,L]
+
+# -------------------------------------------------------
+# Protect the uploads/ folder — no PHP execution inside it
+# -------------------------------------------------------
+<IfModule mod_php.c>
+    <FilesMatch "\.php$">
+        <If "req('REQUEST_URI') =~ m|^/uploads/|">
+            Deny from all
+        </If>
+    </FilesMatch>
+</IfModule>
+RewriteRule ^uploads/.*\.php$ - [F,L]
+
+# -------------------------------------------------------
+# Admin panel protection — restrict by IP (optional)
+# Uncomment and set your server/office IP below
+# -------------------------------------------------------
+# <IfModule mod_authz_core.c>
+#     <RequireAll>
+#         Require ip 123.456.789.000
+#     </RequireAll>
+# </IfModule>
+
+# -------------------------------------------------------
+# Pretty URLs for landing pages
+# e.g. /product/7 → index.php?product_id=7
+# -------------------------------------------------------
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^product/([0-9]+)/?$ index.php?product_id=$1 [QSA,L]
+
+# -------------------------------------------------------
+# Security Headers
+# -------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    # Uncomment after confirming HTTPS is working:
+    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+</IfModule>
+
+
+
+# -------------------------------------------------------
+# Block common bad bots & scanners
+# -------------------------------------------------------
+RewriteCond %{HTTP_USER_AGENT} (sqlmap|nikto|nmap|masscan|zgrab) [NC]
+RewriteRule .* - [F,L]
+
+# -------------------------------------------------------
+# PHP settings (if using mod_php)
+# -------------------------------------------------------
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_value upload_max_filesize 10M
+    php_value post_max_size 12M
+    php_value max_execution_time 60
+    php_value session.cookie_httponly 1
+    php_value session.cookie_samesite "Strict"
+    # php_value session.cookie_secure 1   # enable with HTTPS
+</IfModule>
+
+# -------------------------------------------------------
+# Browser Caching for static assets
+# -------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg          "access plus 1 month"
+    ExpiresByType image/png           "access plus 1 month"
+    ExpiresByType image/webp          "access plus 1 month"
+    ExpiresByType image/gif           "access plus 1 month"
+    ExpiresByType text/css            "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
+    ExpiresByType text/javascript     "access plus 1 week"
+</IfModule>
+
+# -------------------------------------------------------
+# Compression
+# -------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css
+    AddOutputFilterByType DEFLATE application/javascript text/javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# -------------------------------------------------------
+# Custom error pages (create these files if needed)
+# -------------------------------------------------------
+# ErrorDocument 403 /error/403.php
+# ErrorDocument 404 /error/404.php
+# ErrorDocument 500 /error/500.php

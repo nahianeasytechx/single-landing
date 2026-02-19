@@ -32,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_order'])) {
     $result = createOrder($order_data);
 
     if ($result['success']) {
-        $order_success = true;
         $order_number = $result['order_number'];
-        $order_message = 'আপনার অর্ডারটি সফলভাবে সম্পন্ন হয়েছে! অর্ডার নম্বর: #' . $order_number . '\n\nআমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।';
+        header('Location: thankyou.php?order=' . urlencode($order_number));
+        exit;
     } else {
         $order_message = $result['message'] ?? 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
     }
@@ -138,6 +138,23 @@ $conn->close();
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '2232905527196160');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
     <style>
         :root {
             --primary-color: #E91E63;
@@ -1595,15 +1612,6 @@ $conn->close();
         </div>
     </div>
 
-    <?php if ($order_success): ?>
-        <script>
-            alert('<?php echo $order_message; ?>');
-        </script>
-    <?php elseif (!empty($order_message)): ?>
-        <script>
-            alert('<?php echo $order_message; ?>');
-        </script>
-    <?php endif; ?>
 
     <!-- Section 1: Hero -->
     <section class="section-hero">
@@ -2027,177 +2035,243 @@ $conn->close();
         <p>© <?php echo date('Y'); ?> <?php echo htmlspecialchars($template['brand_name'] ?: 'Beauty & Mine'); ?>. All rights reserved. </p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script>
-        // Sticky Header on Scroll
-        window.addEventListener('scroll', function() {
-            const stickyHeader = document.getElementById('stickyHeader');
-            if (window.scrollY > 400) {
-                stickyHeader.classList.add('visible');
-            } else {
-                stickyHeader.classList.remove('visible');
-            }
-        });
-
-        // Initialize Swiper for Review Slider
-        const reviewSwiper = new Swiper('.review-swiper', {
-            slidesPerView: 1,
-            spaceBetween: 20,
-            loop: true,
-            autoplay: {
-                delay: 3500,
-                disableOnInteraction: false,
-            },
-            pagination: {
-                el: '.swiper-pagination',
-                clickable: true,
-            },
-            navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-            },
-            breakpoints: {
-                640: {
-                    slidesPerView: 2,
-                    spaceBetween: 20,
-                },
-                1024: {
-                    slidesPerView: 3,
-                    spaceBetween: 25,
-                }
-            }
-        });
-
-        const shippingCosts = {
-            dhaka: <?php echo $template['shipping_dhaka_cost']; ?>,
-            urban: <?php echo $template['shipping_urban_cost']; ?>,
-            outside: <?php echo $template['shipping_outside_cost']; ?>
-        };
-
-        const variationData = <?php echo json_encode(array_map(function ($v) use ($product) {
-                                    return [
-                                        'id' => $v['id'],
-                                        'price' => floatval($v['total_price']),
-                                        'name' => $product['product_name'],
-                                        'qty' => intval($v['pieces_count']),
-                                        'label' => $v['set_name']
-                                    ];
-                                }, $variations)); ?>;
-
-        function selectProductOption(variationId) {
-            document.getElementById(variationId).checked = true;
-            updateTotal();
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    // ── Sticky Header ────────────────────────────────────────────────────────
+    window.addEventListener('scroll', function() {
+        const stickyHeader = document.getElementById('stickyHeader');
+        if (window.scrollY > 400) {
+            stickyHeader.classList.add('visible');
+        } else {
+            stickyHeader.classList.remove('visible');
         }
+    });
 
-        function selectShippingOption(shippingId) {
-            document.getElementById(shippingId).checked = true;
-            updateTotal();
+    // ── Swiper ───────────────────────────────────────────────────────────────
+    const reviewSwiper = new Swiper('.review-swiper', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: true,
+        autoplay: { delay: 3500, disableOnInteraction: false },
+        pagination: { el: '.swiper-pagination', clickable: true },
+        navigation: { nextEl: '.swiper-button-next', prevEl: '.swiper-button-prev' },
+        breakpoints: {
+            640:  { slidesPerView: 2, spaceBetween: 20 },
+            1024: { slidesPerView: 3, spaceBetween: 25 }
         }
+    });
 
-        function increaseQty(variationId) {
-            const varId = variationId.replace('variation', '');
-            const qtyDisplay = document.getElementById('qty_var' + varId);
-            let currentQty = parseInt(qtyDisplay.textContent);
-            if (currentQty < 99) {
-                qtyDisplay.textContent = currentQty + 1;
-                updateProductPrice(variationId);
-                if (document.getElementById(variationId).checked) {
-                    updateTotal();
-                }
-            }
-        }
+    // ── Data from PHP ────────────────────────────────────────────────────────
+    const shippingCosts = {
+        dhaka:   <?php echo $template['shipping_dhaka_cost']; ?>,
+        urban:   <?php echo $template['shipping_urban_cost']; ?>,
+        outside: <?php echo $template['shipping_outside_cost']; ?>
+    };
 
-        function decreaseQty(variationId) {
-            const varId = variationId.replace('variation', '');
-            const qtyDisplay = document.getElementById('qty_var' + varId);
-            let currentQty = parseInt(qtyDisplay.textContent);
-            if (currentQty > 1) {
-                qtyDisplay.textContent = currentQty - 1;
-                updateProductPrice(variationId);
-                if (document.getElementById(variationId).checked) {
-                    updateTotal();
-                }
+    const variationData = <?php echo json_encode(array_map(function($v) use ($product) {
+        return [
+            'id'    => $v['id'],
+            'price' => floatval($v['total_price']),
+            'name'  => $product['product_name'],
+            'qty'   => intval($v['pieces_count']),
+            'label' => $v['set_name']
+        ];
+    }, $variations)); ?>;
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function getSelectedVariation() {
+        return document.querySelector('input[name="product_variation"]:checked');
+    }
+
+    function getSelectedShipping() {
+        return document.querySelector('input[name="shipping"]:checked');
+    }
+
+    function getQtyForVar(varId) {
+        const el = document.getElementById('qty_var' + varId);
+        return el ? parseInt(el.textContent) || 1 : 1;
+    }
+
+    function getShippingCost() {
+        const s = getSelectedShipping();
+        return s ? (shippingCosts[s.value] || 0) : 0;
+    }
+
+    // ── UI Functions ─────────────────────────────────────────────────────────
+    function selectProductOption(variationId) {
+        document.getElementById(variationId).checked = true;
+        updateTotal();
+    }
+
+    function selectShippingOption(shippingId) {
+        document.getElementById(shippingId).checked = true;
+        updateTotal();
+        // Re-fire AddToCart with updated shipping included
+        fireAddToCart();
+    }
+
+    function increaseQty(variationId) {
+        const varId = variationId.replace('variation', '');
+        const qtyDisplay = document.getElementById('qty_var' + varId);
+        let currentQty = parseInt(qtyDisplay.textContent);
+        if (currentQty < 99) {
+            qtyDisplay.textContent = currentQty + 1;
+            updateProductPrice(variationId);
+            if (document.getElementById(variationId).checked) {
+                updateTotal();
+                fireAddToCart();
             }
         }
+    }
 
-        function updateProductPrice(variationId) {
-            const varId = variationId.replace('variation', '');
-            const productRadio = document.getElementById(variationId);
-            const basePrice = parseFloat(productRadio.dataset.price);
-            const qtyDisplay = document.getElementById('qty_var' + varId);
-            const quantity = parseInt(qtyDisplay.textContent);
-
-            const totalPrice = basePrice * quantity;
-
-            const priceSpan = document.getElementById('price_var' + varId);
-            priceSpan.textContent = totalPrice.toFixed(0) + '৳';
-        }
-
-        function updateTotal() {
-            const selectedProduct = document.querySelector('input[name="product_variation"]:checked');
-            if (!selectedProduct) return;
-
-            const varId = selectedProduct.value;
-            const basePrice = parseFloat(selectedProduct.dataset.price);
-            const productName = selectedProduct.dataset.name;
-            const qtyLabel = selectedProduct.dataset.label;
-
-            const qtyDisplay = document.getElementById('qty_var' + varId);
-            const sets = parseInt(qtyDisplay.textContent);
-
-            // Update hidden quantity field
-            document.getElementById('formQuantity').value = sets;
-
-            const productPrice = basePrice * sets;
-
-            document.getElementById('productName').textContent = `${productName} × ${sets}`;
-            document.getElementById('productSubtotal').textContent = `${productPrice.toFixed(0)}৳`;
-            document.getElementById('subtotalAmount').textContent = `${productPrice.toFixed(0)}৳`;
-
-            const selectedShipping = document.querySelector('input[name="shipping"]:checked');
-
-            if (selectedShipping) {
-                const shippingType = selectedShipping.value;
-                const shippingPrice = shippingCosts[shippingType];
-
-                document.getElementById('shippingAmount').textContent = `${shippingPrice.toFixed(0)}৳`;
-
-                const total = productPrice + shippingPrice;
-                document.getElementById('totalAmount').textContent = `${total.toFixed(0)}৳`;
-                document.getElementById('submitBtn').textContent = `অৰ্ডার সম্পন্ন করুন - ${total.toFixed(0)}৳`;
-            } else {
-                document.getElementById('shippingAmount').textContent = '—';
-                document.getElementById('totalAmount').textContent = `${productPrice.toFixed(0)}৳`;
-                document.getElementById('submitBtn').textContent = `অৰ্ডার সম্পন্ন করুন - ${productPrice.toFixed(0)}৳`;
+    function decreaseQty(variationId) {
+        const varId = variationId.replace('variation', '');
+        const qtyDisplay = document.getElementById('qty_var' + varId);
+        let currentQty = parseInt(qtyDisplay.textContent);
+        if (currentQty > 1) {
+            qtyDisplay.textContent = currentQty - 1;
+            updateProductPrice(variationId);
+            if (document.getElementById(variationId).checked) {
+                updateTotal();
+                fireAddToCart();
             }
         }
+    }
 
-        function scrollToCheckout() {
-            document.getElementById('checkoutSection').scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
+    function updateProductPrice(variationId) {
+        const varId      = variationId.replace('variation', '');
+        const radio      = document.getElementById(variationId);
+        const basePrice  = parseFloat(radio.dataset.price);
+        const qty        = getQtyForVar(varId);
+        const priceSpan  = document.getElementById('price_var' + varId);
+        priceSpan.textContent = (basePrice * qty).toFixed(0) + '৳';
+    }
+
+    function updateTotal() {
+        const selected = getSelectedVariation();
+        if (!selected) return;
+
+        const varId       = selected.value;
+        const basePrice   = parseFloat(selected.dataset.price);
+        const productName = selected.dataset.name;
+        const sets        = getQtyForVar(varId);
+        const productPrice = basePrice * sets;
+
+        document.getElementById('formQuantity').value         = sets;
+        document.getElementById('productName').textContent    = `${productName} × ${sets}`;
+        document.getElementById('productSubtotal').textContent = `${productPrice.toFixed(0)}৳`;
+        document.getElementById('subtotalAmount').textContent  = `${productPrice.toFixed(0)}৳`;
+
+        const shippingCost = getShippingCost();
+        const shipping     = getSelectedShipping();
+
+        if (shipping) {
+            document.getElementById('shippingAmount').textContent = `${shippingCost.toFixed(0)}৳`;
+            const total = productPrice + shippingCost;
+            document.getElementById('totalAmount').textContent    = `${total.toFixed(0)}৳`;
+            document.getElementById('submitBtn').textContent      = `অৰ্ডার সম্পন্ন করুন - ${total.toFixed(0)}৳`;
+        } else {
+            document.getElementById('shippingAmount').textContent = '—';
+            document.getElementById('totalAmount').textContent    = `${productPrice.toFixed(0)}৳`;
+            document.getElementById('submitBtn').textContent      = `অৰ্ডার সম্পন্ন করুন - ${productPrice.toFixed(0)}৳`;
+        }
+    }
+
+    function scrollToCheckout() {
+        document.getElementById('checkoutSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Form Submit Validation ───────────────────────────────────────────────
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        const selectedShipping = getSelectedShipping();
+        if (!selectedShipping) {
+            e.preventDefault();
+            alert('অনুগ্রহ করে শিপিং অপশন নির্বাচন করুন!');
+            document.querySelector('.shipping-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return false;
+        }
+    });
+
+    // ── Meta Pixel: ViewContent (fires once on page load) ────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTotal();
+
+        const firstVar = getSelectedVariation();
+        if (firstVar) {
+            fbq('track', 'ViewContent', {
+                content_name: firstVar.dataset.name,
+                content_ids:  [firstVar.value],
+                content_type: 'product',
+                currency:     'BDT',
+                value:        parseFloat(firstVar.dataset.price) || 0
             });
         }
+    });
 
-        document.getElementById('checkoutForm').addEventListener('submit', function(e) {
-            const selectedShipping = document.querySelector('input[name="shipping"]:checked');
-            if (!selectedShipping) {
-                e.preventDefault();
-                alert('অনুগ্রহ করে শিপিং অপশন নির্বাচন করুন!');
-                document.querySelector('.shipping-section').scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
+    // ── Meta Pixel: AddToCart (centralised, called from multiple triggers) ───
+    function fireAddToCart() {
+        const selected = getSelectedVariation();
+        if (!selected) return;
+
+        const varId       = selected.value;
+        const basePrice   = parseFloat(selected.dataset.price) || 0;
+        const qty         = getQtyForVar(varId);
+        const shippingCost = getShippingCost();
+        const totalValue  = (basePrice * qty) + shippingCost;
+
+        fbq('track', 'AddToCart', {
+            content_name: selected.dataset.name,
+            content_ids:  [varId],
+            content_type: 'product',
+            currency:     'BDT',
+            value:        totalValue,   // ← unique per variation + qty + shipping
+            num_items:    qty
+        });
+    }
+
+    // Fire AddToCart when a different package is selected
+    document.querySelectorAll('input[name="product_variation"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            updateTotal();
+            fireAddToCart();
+        });
+    });
+
+    // ── Meta Pixel: InitiateCheckout (fires once when checkout scrolls into view)
+    let checkoutFired = false;
+    const checkoutObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting && !checkoutFired) {
+                checkoutFired = true;
+                const selected     = getSelectedVariation();
+                const varId        = selected ? selected.value : '';
+                const basePrice    = selected ? parseFloat(selected.dataset.price) : 0;
+                const qty          = selected ? getQtyForVar(varId) : 1;
+                const shippingCost = getShippingCost();
+
+                fbq('track', 'InitiateCheckout', {
+                    content_name: selected ? selected.dataset.name : '',
+                    content_ids:  selected ? [varId] : [],
+                    content_type: 'product',
+                    currency:     'BDT',
+                    value:        (basePrice * qty) + shippingCost,
+                    num_items:    qty
                 });
-                return false;
             }
         });
+    }, { threshold: 0.3 });
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTotal();
+    const checkoutSection = document.getElementById('checkoutSection');
+    if (checkoutSection) checkoutObserver.observe(checkoutSection);
+
+    // ── Meta Pixel: Contact button clicks ────────────────────────────────────
+    document.querySelectorAll('.contact-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            fbq('track', 'Contact');
         });
-    </script>
+    });
+</script>
 </body>
 
 </html>

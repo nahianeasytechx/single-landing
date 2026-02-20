@@ -1990,9 +1990,9 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
                                     <div class="product-details" onclick="selectProductOption('variation<?php echo $variation['id']; ?>')" style="cursor: pointer;">
                                         <div class="product-name">
                                             <?php echo htmlspecialchars($product['product_name']); ?>
-                                            <?php if ($variation['is_special_offer']): ?>
+                                            <!-- <?php if ($variation['is_special_offer']): ?>
                                                 <span class="special-offer-badge">Special</span>
-                                            <?php endif; ?>
+                                            <?php endif; ?> -->
                                         </div>
                                         <div class="product-meta">
                                             <?php echo htmlspecialchars($variation['set_name']); ?> |

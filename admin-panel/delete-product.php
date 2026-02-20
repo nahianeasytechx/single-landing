@@ -12,13 +12,15 @@ if (!isLoggedIn()) {
 }
 
 // Check if product ID is provided
-if (!isset($_POST['product_id']) || empty($_POST['product_id'])) {
+$product_id = intval($_GET['id'] ?? $_POST['product_id'] ?? 0);
+
+if (!$product_id) {
     $_SESSION['error_message'] = 'Product ID is required';
-   echo '<script>window.location.href = "products.php";</script>';
+    header('Location: products.php');
     exit();
 }
 
-$product_id = intval($_POST['product_id']);
+
 
 // Get product details before deletion (for logging/messages)
 $product = getProductById($product_id);

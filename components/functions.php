@@ -1,13 +1,18 @@
 <?php
     function getDatabaseConnection() {
-    $host = 'localhost';
-    $username = 'root';
+    // $host     = 'localhost';
+    // $username = 'techytor';        // ← prefixed with cPanel username
+    // $password = 'n76DXUiw:d01(S';
+    // $database = 'techytor_single_landing';
+
+    $host     = 'localhost';
+    $username = 'root';        
     $password = '';
     $database = 'single_landing';
 
     
     $conn = new mysqli($host, $username, $password, $database);
-    
+    $conn->set_charset("utf8mb4");  // ← ADD THIS LINE
     if ($conn->connect_error) {
         error_log("Database connection failed: " . $conn->connect_error);
         exit;
@@ -435,7 +440,28 @@ function deleteProduct($id) {
             }
         }
         
-        // Delete product (cascades to images and colors)
+        // Delete child records first
+        $tables = ['product_images', 'product_colors', 'product_sets'];
+        foreach ($tables as $table) {
+            $del = $conn->prepare("DELETE FROM `$table` WHERE product_id = ?");
+            $del->bind_param("i", $id);
+            $del->execute();
+            $del->close();
+        }
+
+        // Nullify order_items instead of deleting (preserve order history)
+        $del = $conn->prepare("UPDATE order_items SET product_id = NULL WHERE product_id = ?");
+        $del->bind_param("i", $id);
+        $del->execute();
+        $del->close();
+
+        // Delete landing page templates linked to this product
+        $del = $conn->prepare("DELETE FROM landing_page_templates WHERE product_id = ?");
+        $del->bind_param("i", $id);
+        $del->execute();
+        $del->close();
+        
+        // Now delete the product
         $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
         $stmt->bind_param("i", $id);
         
@@ -444,7 +470,7 @@ function deleteProduct($id) {
             $conn->close();
             return ['success' => true, 'message' => 'Product deleted successfully'];
         } else {
-            throw new Exception('Failed to delete product');
+            throw new Exception('Failed to delete product: ' . $stmt->error);
         }
         
     } catch (Exception $e) {

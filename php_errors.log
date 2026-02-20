@@ -1,0 +1,14 @@
+[20-Feb-2026 16:48:26 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/1045): Access denied for user 'techytor'@'localhost' (using password: YES) in C:\xampp\htdocs\single-landing-page\components\functions.php on line 14
+[20-Feb-2026 16:48:26 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\single-landing-page\components\functions.php:15
+Stack trace:
+#0 C:\xampp\htdocs\single-landing-page\components\functions.php(15): mysqli->set_charset('utf8mb4')
+#1 C:\xampp\htdocs\single-landing-page\index.php(11): getDatabaseConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\single-landing-page\components\functions.php on line 15
+[20-Feb-2026 16:48:57 Europe/Berlin] PHP Warning:  mysqli::__construct(): (HY000/1045): Access denied for user 'techytor'@'localhost' (using password: YES) in C:\xampp\htdocs\single-landing-page\components\functions.php on line 14
+[20-Feb-2026 16:48:57 Europe/Berlin] PHP Fatal error:  Uncaught Error: mysqli object is already closed in C:\xampp\htdocs\single-landing-page\components\functions.php:15
+Stack trace:
+#0 C:\xampp\htdocs\single-landing-page\components\functions.php(15): mysqli->set_charset('utf8mb4')
+#1 C:\xampp\htdocs\single-landing-page\index.php(11): getDatabaseConnection()
+#2 {main}
+  thrown in C:\xampp\htdocs\single-landing-page\components\functions.php on line 15

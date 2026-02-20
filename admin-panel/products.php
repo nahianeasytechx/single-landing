@@ -12,18 +12,16 @@ $products = getAllProducts();
 <!------------------------ Your Content Start From Here --------------------->
 <!--=======================================================================-->
 <style>
-    .btn-group{
+    .btn-group {
         margin-right: 5px;
     }
-.btn
-{
-    color: white !important;
-    height: 50px;
-}
-.btn i
-{
-font-size: 10px;
-}
+    .btn-group .btn {
+        color: white !important;
+        height: 50px;
+    }
+    .btn-group .btn i {
+        font-size: 10px;
+    }
 </style>
 <div class="container-fluid">
     <div class="row">
@@ -151,12 +149,13 @@ font-size: 10px;
                                                class="btn btn-warning" title="Product Sets">
                                                 <i class="fa-solid fa-box"></i>
                                             </a>
-                                            <button type="button" class="btn btn-danger delete-product" 
-                                                    data-id="<?php echo $product['id']; ?>" 
-                                                    data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
-                                                    title="Delete">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
+                                           <a href="delete-product.php?id=<?php echo $product['id']; ?>" 
+                                              class="btn btn-danger delete-product"
+                                              data-id="<?php echo $product['id']; ?>"
+                                              data-name="<?php echo htmlspecialchars($product['product_name']); ?>"
+                                              title="Delete">
+                                               <i class="fa-solid fa-trash"></i>
+                                           </a>
                                         </div>
                                     </td>
                                 </tr>

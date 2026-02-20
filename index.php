@@ -1,4 +1,6 @@
 <?php
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/php_errors.log');
 // Set current page for header navigation
 $current_page = basename($_SERVER['PHP_SELF']);
 
@@ -135,6 +137,12 @@ $conn->close();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    
+    <!-- Google Fonts code Code -->
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -184,7 +192,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
         }
 
         body {
-            font-family: 'Inter', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+            font-family: 'Hind Siliguri', sans-serif;
             overflow-x: hidden;
             background: var(--bg-white);
             color: var(--text-dark);
@@ -198,8 +206,11 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
         h3,
         h4,
         h5,
-        h6 {
-            font-family: 'Playfair Display', serif;
+        h6,
+        p,
+        span,
+        div{
+            font-family: 'Hind Siliguri', sans-serif;
             font-weight: 700;
             line-height: 1.2;
         }
@@ -279,7 +290,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
         }
 
         .sticky-header .brand {
-            font-family: 'Playfair Display', serif;
+             font-family: 'Hind Siliguri', sans-serif;
             font-size: 20px;
             font-weight: 700;
             color: var(--primary-color);
@@ -680,17 +691,27 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
             position: relative;
         }
 
-        .gallery-main {
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow-xl);
-            background: white;
-        }
+.gallery-main {
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+    background: #f5f5f5;
+}
 
-        .gallery-main img {
-            width: 100%;
-            display: block;
-        }
+.gallery-main .carousel-inner {
+    background: #f5f5f5;
+}
+
+.gallery-main .carousel-item {
+    background: #f5f5f5;
+}
+
+.gallery-main img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
 
         .cta-content {
             padding: 25px;
@@ -1750,7 +1771,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
         <div class="cta-grid">
             <?php if (!empty($product_slider_images)): ?>
                 <div class="product-gallery">
-                    <div id="productCarousel" class="carousel slide" data-bs-ride="carousel">
+                   <div id="productCarousel" class="carousel" data-bs-ride="carousel">
                         <div class="carousel-indicators">
                             <?php foreach ($product_slider_images as $index => $image): ?>
                                 <button type="button" data-bs-target="#productCarousel"
@@ -1809,7 +1830,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
 
                 <?php if (!empty($variations) && isset($variations[0])): ?>
                     <div class="price-box">
-                        <div class="price-original">রেগুলার মূল্য: ৳<?php echo number_format($variations[0]['unit_price'] * $variations[0]['pieces_count'], 0); ?></div>
+                      <div class="price-original">রেগুলার মূল্য: ৳<?php echo number_format($product['regular_price'] * $variations[0]['pieces_count'], 0); ?></div>
                         <div class="price-current">৳<?php echo number_format($variations[0]['total_price'], 0); ?></div>
                         <span class="price-badge">স্পেশাল অফার</span>
                     </div>
@@ -1818,14 +1839,6 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
                 <button class="cta-button" onclick="scrollToCheckout()">অৰ্ডার করুন</button>
 
                 <div class="trust-badges">
-                    <div class="trust-badge">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>নিরাপদ পেমেন্ট</span>
-                    </div>
-                    <div class="trust-badge">
-                        <i class="fas fa-truck"></i>
-                        <span>ফ্রি ডেলিভারি</span>
-                    </div>
                     <div class="trust-badge">
                         <i class="fas fa-check-circle"></i>
                         <span>অরিজিনাল প্রোডাক্ট</span>
@@ -1917,7 +1930,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
                             <div class="option-card" onclick="selectShippingOption('urban')">
                                 <input type="radio" name="shipping" id="urban" value="urban" required onchange="updateTotal()">
                                 <label for="urban">
-                                    <strong>ঢাকার আশেপাশে (শহরতলী)</strong><br>
+                                    <strong>ঢাকা সিটির বাহিরে  </strong><br>
                                     <small>ডেলিভারি চার্জ: <?php echo number_format($template['shipping_urban_cost'], 0); ?>৳</small>
                                 </label>
                             </div>
@@ -1925,7 +1938,7 @@ src="https://www.facebook.com/tr?id=2232905527196160&ev=PageView&noscript=1"
                             <div class="option-card" onclick="selectShippingOption('outside')">
                                 <input type="radio" name="shipping" id="outside" value="outside" required onchange="updateTotal()">
                                 <label for="outside">
-                                    <strong>ঢাকার বাইরে</strong><br>
+                                    <strong>ঢাকার জেলার বাইরে</strong><br>
                                     <small>ডেলিভারি চার্জ: <?php echo number_format($template['shipping_outside_cost'], 0); ?>৳</small>
                                 </label>
                             </div>
